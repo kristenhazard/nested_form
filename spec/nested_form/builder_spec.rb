@@ -29,6 +29,13 @@ require "spec_helper"
         end.should == '<div class="fields">Task</div><div class="fields">Task</div>'
       end
 
+      it "should allow overriding nested fields wrapper element" do
+        2.times { @project.tasks.build }
+        @builder.fields_for(:tasks, :fields_tag => 'li') do
+          "Task"
+        end.should == '<li class="fields">Task</li><li class="fields">Task</li>'
+      end
+
       it "should add task fields to hidden div after form" do
         pending
         output = ""
