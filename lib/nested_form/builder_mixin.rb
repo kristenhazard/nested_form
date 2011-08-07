@@ -21,10 +21,14 @@ module NestedForm
       @fields ||= {}
       @template.after_nested_form(association) do
         model_object = object.class.reflect_on_association(association).klass.new
-        output = %Q[<div id="#{association}_fields_blueprint" style="display: none">].html_safe
-        output << fields_for(association, model_object, :child_index => "new_#{association}", &@fields[association])
-        output.safe_concat('</div>')
-        output
+        blueprint_tag = case @fields_tag.to_sym
+                        when :tr then :table
+                        when :li then :ol
+                        else :div
+                        end
+        output = @template.content_tag blueprint_tag, :id => "#{association}_fields_blueprint", :style => 'display: none' do
+          fields_for(association, model_object, :child_index => "new_#{association}", &@fields[association])
+        end
       end
       @template.link_to(*args, &block)
     end
@@ -57,8 +61,8 @@ module NestedForm
     end
 
     def fields_for_nested_model(name, object, options, block)
-      fields_tag = options[:fields_tag] || :div
-      @template.content_tag fields_tag, :class => 'fields' do
+      @fields_tag ||= options[:fields_tag] || :div
+      @template.content_tag @fields_tag, :class => 'fields' do
         super
       end
     end
