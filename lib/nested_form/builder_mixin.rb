@@ -16,12 +16,13 @@ module NestedForm
       association = args.pop
       options[:class] = [options[:class], "add_nested_fields"].compact.join(" ")
       options["data-association"] = association
+      options["data-collection"] = @@collection_id if @collection_tag
       args << (options.delete(:href) || "javascript:void(0)")
       args << options
       @fields ||= {}
       @template.after_nested_form(association) do
         model_object = object.class.reflect_on_association(association).klass.new
-        blueprint_tag = case @fields_tag.to_sym
+        blueprint_tag = case @fields_tag.try(:to_sym)
                         when :tr then :table
                         when :li then :ol
                         else :div
@@ -52,6 +53,20 @@ module NestedForm
       hidden_field(:_destroy) + @template.link_to(*args, &block)
     end
 
+    def fields_for(record_or_name_or_array, *args, &block)
+      options = args.extract_options!.symbolize_keys
+      @collection_tag = options.delete(:collection_tag)
+      @fields_tag ||= options.delete(:fields_tag) || :div
+      @@collection_id ||= 0 if @collection_tag
+      args << options
+      output = super(record_or_name_or_array, *args, &block)
+      if @collection_tag
+        @template.content_tag @collection_tag, output, :id => "collection#{@@collection_id += 1}"
+      else
+        output
+      end
+    end
+
     def fields_for_with_nested_attributes(association_name, *args)
       # TODO Test this better
       block = args.pop || Proc.new { |fields| @template.render(:partial => "#{association_name.to_s.singularize}_fields", :locals => {:f => fields}) }
@@ -61,7 +76,6 @@ module NestedForm
     end
 
     def fields_for_nested_model(name, object, options, block)
-      @fields_tag ||= options[:fields_tag] || :div
       @template.content_tag @fields_tag, :class => 'fields' do
         super
       end
