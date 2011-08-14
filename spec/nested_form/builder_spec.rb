@@ -26,14 +26,14 @@ require "spec_helper"
         2.times { @project.tasks.build }
         @builder.fields_for(:tasks) do
           "Task"
-        end.should == '<div class="fields">Task</div><div class="fields">Task</div>'
+        end.should == '<div class="task fields">Task</div><div class="task fields">Task</div>'
       end
 
       it "should allow overriding nested fields wrapper element" do
         2.times { @project.tasks.build }
         @builder.fields_for(:tasks, :fields_tag => 'li') do
           "Task"
-        end.should == '<li class="fields">Task</li><li class="fields">Task</li>'
+        end.should == '<li class="task fields">Task</li><li class="task fields">Task</li>'
       end
 
       it "should add task fields to hidden div after form" do
@@ -42,7 +42,7 @@ require "spec_helper"
         mock(@template).after_nested_form(:tasks) { |arg, block| output << block.call }
         @builder.fields_for(:tasks) { "Task" }
         @builder.link_to_add("Add", :tasks)
-        output.should == '<div id="tasks_fields_blueprint" style="display: none"><div class="fields">Task</div></div>'
+        output.should == '<div id="tasks_fields_blueprint" style="display: none"><div class="task fields">Task</div></div>'
       end
     end
   end
