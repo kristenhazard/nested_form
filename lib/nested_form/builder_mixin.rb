@@ -22,16 +22,19 @@ module NestedForm
       @fields ||= {}
       @template.after_nested_form(association) do
         model_object = object.class.reflect_on_association(association).klass.new
-        blueprint_tag = case @fields_tag.try(:to_sym)
-                        when :tr then :table
-                        when :li then :ol
-                        else :div
-                        end
         output = @template.content_tag blueprint_tag, :id => "#{association}_fields_blueprint", :style => 'display: none' do
           fields_for(association, model_object, :child_index => "new_#{association}", &@fields[association])
         end
       end
       @template.link_to(*args, &block)
+    end
+
+    def blueprint_tag
+      case @fields_tag.try(:to_sym)
+      when :tr then :table
+      when :li then :ol
+      else :div
+      end
     end
 
     # Adds a link to remove the associated record. The first argment is the name of the link.
