@@ -78,8 +78,18 @@ module NestedForm
       super(association_name, *(args << block))
     end
 
+    def inheritance_chain(klass)
+      chain = []
+      until klass == ActiveRecord::Base || klass == Object
+        chain << klass
+        klass = klass.superclass
+      end
+      chain
+    end
+
     def fields_for_nested_model(name, object, options, block)
-      @template.content_tag @fields_tag, :class => "#{@template.dom_class(object)} fields" do
+      klasses = inheritance_chain(object.class).map { |klass| @template.dom_class(klass) }.join(' ')
+      @template.content_tag @fields_tag, :class => "#{klasses} fields" do
         super
       end
     end
